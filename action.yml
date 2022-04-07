@@ -1,10 +1,10 @@
 name: Run private Wayflyer GitHub action.
 description: |
-  TODO
+  GitHub action to run another GitHub action defined in a private Wayflyer repository.
 inputs:
   action:
     description: |
-      The GitHub action repository to run, relative to the `wayflyer` organization.
+      The GitHub action to run, relative to the `wayflyer` organization.
       For example: "setup-python@v1"
     required: true
     type: string
@@ -22,36 +22,32 @@ inputs:
 runs:
   using: composite
   steps:
+    # Parse the input `action` into a repository and tag.
     - name: Parse action repository
       uses: actions/github-script@v6
       id: parse-action-repository
       env:
         WF_ACTION: ${{ inputs.action }}
       with:
-        script: |
-          const action = process.env.WF_ACTION.split("@");
-          if (action.length != 2) {
-            core.setFailed("Input `action` should have the form 'action@version'");
-          }
-          return action[0]
+        script: require("lib/index.js").parseAction().repository
         result-encoding: string
-    - name: Parse action version
+    - name: Parse action ref
       uses: actions/github-script@v6
-      id: parse-action-version
+      id: parse-action-ref
       env:
         WF_ACTION: ${{ inputs.action }}
       with:
-        script: return process.env.WF_ACTION.split("@")[1]
+        script: script: require("lib/index.js").parseAction().ref
         result-encoding: string
-    - name: Check out wayflyer/${{ steps.parse-action-repository.outputs.result }}@${{ steps.parse-action-tag.outputs.result }}
+    - name: Check out wayflyer/${{ steps.parse-action-repository.outputs.result }}@${{ steps.parse-action-ref.outputs.result }}
       uses: actions/checkout@v3
       with:
         repository: wayflyer/${{ steps.parse-action-repository.outputs.result }}
-        ref: ${{ steps.parse-action-tag.outputs.result }}
+        ref: ${{ steps.parse-action-ref.outputs.result }}
         token: ${{ inputs.github-token }}
         persist-credentials: false
         path: ./.private-action
-    - name: Run wayflyer/${{ steps.parse-action-repository.outputs.result }}@${{ steps.parse-action-tag.outputs.result }}
+    - name: Run wayflyer/${{ steps.parse-action-repository.outputs.result }}@${{ steps.parse-action-ref.outputs.result }}
       uses: ./.private-action
       with: ${{ fromJSON(inputs.with) }}
     - name: Clean up action

@@ -37,7 +37,7 @@ runs:
       uses: actions/checkout@v3
       with:
         repository: wayflyer/${{ fromJSON(steps.parse-inputs.outputs.result).repository }}
-        ref: ${{ fromJSON(steps.parse-inputs.outputs.result).ref }}
+        ref: refs/tags/${{ fromJSON(steps.parse-inputs.outputs.result).ref }}
         token: ${{ inputs.github-token }}
         persist-credentials: false
         path: ./.private-action

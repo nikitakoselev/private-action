@@ -22,34 +22,33 @@ inputs:
 runs:
   using: composite
   steps:
-    # Parse the input `action` into a repository and tag.
-    - name: Parse action repository
+    # Parse inputs.
+    - name: Parse inputs
       uses: actions/github-script@v6
-      id: parse-action-repository
+      id: parse-inputs
       env:
-        WF_ACTION: ${{ inputs.action }}
+        WF_INPUT_ACTION: ${{ inputs.action }}
+        WF_INPUT_WITH: ${{ inputs.with }}
       with:
-        script: require("lib/index.js").parseAction().repository
-        result-encoding: string
-    - name: Parse action ref
-      uses: actions/github-script@v6
-      id: parse-action-ref
-      env:
-        WF_ACTION: ${{ inputs.action }}
-      with:
-        script: script: require("lib/index.js").parseAction().ref
-        result-encoding: string
-    - name: Check out wayflyer/${{ steps.parse-action-repository.outputs.result }}@${{ steps.parse-action-ref.outputs.result }}
+        script: return require("./lib/index.js").parseInputs()
+    # Parse the input `with` into JSON.
+    - name: Parse action inputs
+    - uses: actions/github-script@v6
+    # Check out the private action into `.private-action`. Ideally we'd use a temporary directory in `/tmp`, but
+    # `uses` requires local actions to start with ".".
+    - name: Check out private action
       uses: actions/checkout@v3
       with:
-        repository: wayflyer/${{ steps.parse-action-repository.outputs.result }}
-        ref: ${{ steps.parse-action-ref.outputs.result }}
+        repository: wayflyer/${{ fromJSON(steps.parse-inputs.outputs.result).repository }}
+        ref: ${{ fromJSON(steps.parse-inputs.outputs.result).ref }}
         token: ${{ inputs.github-token }}
         persist-credentials: false
         path: ./.private-action
-    - name: Run wayflyer/${{ steps.parse-action-repository.outputs.result }}@${{ steps.parse-action-ref.outputs.result }}
+    # Run the private action, using the deserialized inputs.
+    - name: Run private action
       uses: ./.private-action
-      with: ${{ fromJSON(inputs.with) }}
+      with: ${{ fromJSON(steps.parse-inputs.outputs.result).with }}
+    # Clean up the private action directory.
     - name: Clean up action
       shell: bash
       run: rm -r ./.private-action

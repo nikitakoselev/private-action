@@ -8351,7 +8351,28 @@ exports.visitAsync = visitAsync;
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
+var exports = __webpack_exports__;
 const yaml = __nccwpck_require__(5065);
+
+exports.parseInputs = function() {
+  const inputAction = process.env.WF_INPUT_ACTION.split("@");
+  if (inputAction.length != 2) {
+    core.setFailed("Input `action` should have the format 'action@version'");
+    return
+  }
+  let inputWith;
+  try {
+    inputWith = yaml.parse(process.env.WF_INPUT_WITH);
+  } catch(ex) {
+    core.setFailed(`Input \`with\`: ${ex}`);
+    return
+  }
+  return {
+    repository: inputAction[0],
+    ref: inputAction[1],
+    with: inputWith,
+  };
+}
 
 })();
 

@@ -41,6 +41,7 @@ runs:
         token: ${{ inputs.github-token }}
         persist-credentials: false
         path: ./.private-action
+        fetch-depth: 0
     # Run the private action, using the deserialized inputs.
     - name: Run private action
       uses: ./.private-action

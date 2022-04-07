@@ -23,5 +23,5 @@ Run a private action that takes inputs:
     action: setup-python@v1
     github-token: ${{ secrets.WAYFLYER_GITHUB_TOKEN }}
     with: |
-      python-version: ${{ matrix.python-version }}"
+      python-version: ${{ matrix.python-version }}
 ```

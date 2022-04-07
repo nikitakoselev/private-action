@@ -1,11 +1,59 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: Run private Wayflyer GitHub action.
+description: |
+  TODO
 inputs:
-  milliseconds: # change this
+  action:
+    description: |
+      The GitHub action repository to run, relative to the `wayflyer` organization.
+      For example: "setup-python@v1"
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+    type: string
+  github-token:
+    description: |
+      A GitHub personal access token to authenticate with the private action repository.
+    required: true
+    type: string
+  with:
+    description: |
+      A YAML string containing the `with` clause for the private action.
+    default: ""
+    required: true
+    type: string
 runs:
-  using: 'node16'
-  main: 'dist/index.js'
+  using: composite
+  steps:
+    - name: Parse action repository
+      uses: actions/github-script@v6
+      id: parse-action-repository
+      env:
+        WF_ACTION: ${{ inputs.action }}
+      with:
+        script: |
+          const action = process.env.WF_ACTION.split("@");
+          if (action.length != 2) {
+            core.setFailed("Input `action` should have the form 'action@version'");
+          }
+          return action[0]
+        result-encoding: string
+    - name: Parse action version
+      uses: actions/github-script@v6
+      id: parse-action-version
+      env:
+        WF_ACTION: ${{ inputs.action }}
+      with:
+        script: return process.env.WF_ACTION.split("@")[1]
+        result-encoding: string
+    - name: Check out wayflyer/${{ steps.parse-action-repository.outputs.result }}@${{ steps.parse-action-tag.outputs.result }}
+      uses: actions/checkout@v3
+      with:
+        repository: wayflyer/${{ steps.parse-action-repository.outputs.result }}
+        ref: ${{ steps.parse-action-tag.outputs.result }}
+        token: ${{ inputs.github-token }}
+        persist-credentials: false
+        path: ./.private-action
+    - name: Run wayflyer/${{ steps.parse-action-repository.outputs.result }}@${{ steps.parse-action-tag.outputs.result }}
+      uses: ./.private-action
+      with: ${{ fromJSON(inputs.with) }}
+    - name: Clean up action
+      shell: bash
+      run: rm -r ./.private-action

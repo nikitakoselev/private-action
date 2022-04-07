@@ -2,19 +2,11 @@
   "name": "private-action",
   "private": true,
   "version": "0.0.0",
-  "scripts": {
-    "check:ts": "tsc --noEmit",
-    "check:prettier": "prettier --check '**/*.{js,ts,json}'",
-    "build": "tsc && ncc build --source-map --license licenses.txt"
-  },
   "main": "./lib/index.js",
   "dependencies": {
-    "@actions/core": "^1.6.0"
+    "yaml": "^2.0.0"
   },
   "devDependencies": {
-    "@types/node": "^17.0.21",
-    "prettier": "^2.5.1",
-    "typescript": "^4.6.2",
     "@vercel/ncc": "^0.31.1"
   }
 }

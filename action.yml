@@ -31,9 +31,6 @@ runs:
         WF_INPUT_WITH: ${{ inputs.with }}
       with:
         script: return require("./lib/index.js").parseInputs()
-    # Parse the input `with` into JSON.
-    - name: Parse action inputs
-    - uses: actions/github-script@v6
     # Check out the private action into `.private-action`. Ideally we'd use a temporary directory in `/tmp`, but
     # `uses` requires local actions to start with ".".
     - name: Check out private action

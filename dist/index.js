@@ -8370,7 +8370,7 @@ exports.parseInputs = function() {
   return {
     repository: inputAction[0],
     ref: inputAction[1],
-    with: inputWith,
+    with: inputWith || {},
   };
 }
 
